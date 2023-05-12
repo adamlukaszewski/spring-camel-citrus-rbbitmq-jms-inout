@@ -34,7 +34,8 @@ public class SampleCamelRouter extends RouteBuilder {
         from("timer:hello?repeatCount=1")
             .transform(simple("Random number ${random(0,100)}"))
             .log(LoggingLevel.ERROR,
-                    "Timeout of replay should happen after 10 secs (application.properties) or 15 secs as here configured")
+                    ">>>>>>> Timeout of replay should happen after 10 secs (application.properties) or 15 secs as " +
+                            "here configured")
             .to(ExchangePattern.InOut, "spring-rabbitmq:foo?routingKey=mykey&replyTimeout=15000");
     }
 }
