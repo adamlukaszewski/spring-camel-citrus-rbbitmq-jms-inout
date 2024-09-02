@@ -30,12 +30,24 @@ import org.springframework.stereotype.Component;
 public class SampleCamelRouter extends RouteBuilder {
 
     @Override
-    public void configure() throws Exception {
-        from("timer:hello?repeatCount=1")
-            .transform(simple("Random number ${random(0,100)}"))
-            .log(LoggingLevel.ERROR,
-                    ">>>>>>> Timeout of replay should happen after 10 secs (application.properties) or 15 secs as " +
-                            "here configured")
-            .to(ExchangePattern.InOut, "spring-rabbitmq:foo?routingKey=mykey&replyTimeout=15000");
+    public void configure() {
+        from("spring-rabbitmq:%s?queues=%s".formatted("foo", "foo.queue"))
+                .routeId("worker-route") // Optional: Set a route ID for easier identification
+                .log(LoggingLevel.INFO, ">>> GOT THE FOLLOWING MESSAGE FROM RABBITMQ: ${body}")
+                .process(exchange -> {
+                    // Example of processing logic
+                    String incomingMessage = exchange.getIn().getBody(String.class);
+                    String correlationId = exchange.getIn().getHeader("JMSCorrelationID", String.class);
+
+                    // Simulate generating a response based on the incoming message
+                    String jsonResponse = String.format("{\"response\": \"Processed message with ID %s and body: %s\"}", correlationId, incomingMessage);
+
+                    // Set the response body and headers
+                    exchange.getMessage().setBody(jsonResponse);
+                    exchange.getMessage().setHeader("Content-Type", "application/json");
+                })
+                .wireTap("spring-rabbitmq:?queues=foo.queue.debug&routingKey=foo.queue.debug")
+                .log(LoggingLevel.INFO, ">>> SENDING RESPONSE BACK TO PRODUCER: ${body}")
+                .setExchangePattern(ExchangePattern.InOut); // This is not strictly necessary here, as it defaults to InOut when replying
     }
 }
