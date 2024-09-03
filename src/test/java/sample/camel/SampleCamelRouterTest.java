@@ -36,6 +36,7 @@ public class SampleCamelRouterTest {
                 .endpoint(this.inOutQueueEndpoint)
                 .message()
                 .type(MessageType.PLAINTEXT)
+                .header("JMSType", "TextMessage")
                 .body("A foo description")
         );
 

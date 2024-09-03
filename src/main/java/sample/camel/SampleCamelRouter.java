@@ -32,7 +32,7 @@ public class SampleCamelRouter extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        from("spring-rabbitmq:%s?queues=%s".formatted("foo", "foo.queue"))
+        from("spring-rabbitmq:%s?queues=%s".formatted("", "foo.queue"))
                 .routeId("worker-route") // Optional: Set a route ID for easier identification
                 .log(LoggingLevel.INFO, ">>> GOT THE FOLLOWING MESSAGE FROM RABBITMQ: ${body}")
                 .process(exchange -> {
@@ -44,17 +44,14 @@ public class SampleCamelRouter extends RouteBuilder {
                     String jsonResponse = String.format("{\"response\": \"Processed message with ID %s and body: %s\"}", correlationId, incomingMessage);
 
                     // Set the response body and headers
-                    exchange.getMessage().setHeader("Content-Type", "plain/text");
-                    exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "plain/text");
                     exchange.getMessage().setBody(jsonResponse, String.class);
                 })
                 .setHeader(Exchange.CONTENT_TYPE, constant("plain/text"))
                 .setHeader("CamelRabbitmqContentType", constant("plain/text"))
-                .setHeader("JMSType", constant("TextMessage"))
-                .setHeader("AAAAAA-A", constant("HAHAHAH"))
+//                .setHeader("JMSType", constant("TextMessage"))
                 .convertBodyTo(String.class)  // Ensure the message is treated as a TextMessage
 //                .wireTap("spring-rabbitmq:?queues=foo.queue.debug&routingKey=foo.queue.debug")
-                .wireTap("spring-rabbitmq:?queues=foo.queue.debug&routingKey=foo.queue.debug")
+//                .wireTap("spring-rabbitmq:?queues=foo.queue.debug&routingKey=foo.queue.debug")
                 .log(LoggingLevel.INFO, ">>> SENDING RESPONSE BACK TO PRODUCER: ${body}")
 
 //                .setExchangePattern(ExchangePattern.InOut)
