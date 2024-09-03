@@ -16,6 +16,7 @@
  */
 package sample.camel;
 
+import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
@@ -30,7 +31,7 @@ import org.springframework.stereotype.Component;
 public class SampleCamelRouter extends RouteBuilder {
 
     @Override
-    public void configure() {
+    public void configure() throws Exception {
         from("spring-rabbitmq:%s?queues=%s".formatted("foo", "foo.queue"))
                 .routeId("worker-route") // Optional: Set a route ID for easier identification
                 .log(LoggingLevel.INFO, ">>> GOT THE FOLLOWING MESSAGE FROM RABBITMQ: ${body}")
@@ -43,11 +44,20 @@ public class SampleCamelRouter extends RouteBuilder {
                     String jsonResponse = String.format("{\"response\": \"Processed message with ID %s and body: %s\"}", correlationId, incomingMessage);
 
                     // Set the response body and headers
-                    exchange.getMessage().setBody(jsonResponse);
-                    exchange.getMessage().setHeader("Content-Type", "application/json");
+                    exchange.getMessage().setHeader("Content-Type", "plain/text");
+                    exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "plain/text");
+                    exchange.getMessage().setBody(jsonResponse, String.class);
                 })
+                .setHeader(Exchange.CONTENT_TYPE, constant("plain/text"))
+                .setHeader("CamelRabbitmqContentType", constant("plain/text"))
+                .setHeader("JMSType", constant("TextMessage"))
+                .setHeader("AAAAAA-A", constant("HAHAHAH"))
+                .convertBodyTo(String.class)  // Ensure the message is treated as a TextMessage
+//                .wireTap("spring-rabbitmq:?queues=foo.queue.debug&routingKey=foo.queue.debug")
                 .wireTap("spring-rabbitmq:?queues=foo.queue.debug&routingKey=foo.queue.debug")
                 .log(LoggingLevel.INFO, ">>> SENDING RESPONSE BACK TO PRODUCER: ${body}")
-                .setExchangePattern(ExchangePattern.InOut); // This is not strictly necessary here, as it defaults to InOut when replying
+
+//                .setExchangePattern(ExchangePattern.InOut)
+        ; // This is not strictly necessary here, as it defaults to InOut when replying
     }
 }

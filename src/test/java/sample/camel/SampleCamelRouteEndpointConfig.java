@@ -7,6 +7,9 @@ import org.citrusframework.container.BeforeSuite;
 import org.citrusframework.container.SequenceBeforeSuite;
 import org.citrusframework.dsl.endpoint.CitrusEndpoints;
 import org.citrusframework.jms.endpoint.JmsEndpoint;
+import org.citrusframework.jms.message.JmsMessageConverter;
+import org.springframework.amqp.support.converter.SimpleMessageConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,8 +25,7 @@ public class SampleCamelRouteEndpointConfig {
                 .build();
     }
 
-
-    @Bean
+    @Bean()
     public ConnectionFactory connectionFactory() {
         RMQConnectionFactory connectionFactory = new RMQConnectionFactory();
         connectionFactory.setUsername("admin");
@@ -42,24 +44,42 @@ public class SampleCamelRouteEndpointConfig {
 //        return jmsDestination;
 //    }
 
+    @Bean(name = "fooQueueDestination")
+    public RMQDestination fooQueueDestination() {
+//        RMQDestination jmsDestination = new RMQDestination();
+//        jmsDestination.setAmqp(true);
+//        jmsDestination.setDestinationName("foo.queue");
+//        jmsDestination.setQueue(true);
+//        jmsDestination.setAmqpExchangeName("foo");
+//        jmsDestination.setAmqpRoutingKey("");
+//        jmsDestination.setAmqpQueueName("foo.queue");
+        return new RMQDestination("foo.queue", "", "foo.queue", "");
+    }
+
+    @Bean(name = "barQueueDestination")
+    public RMQDestination barQueueDestination() {
+//        RMQDestination jmsDestination = new RMQDestination();
+//        jmsDestination.setAmqp(true);
+//        jmsDestination.setDestinationName("bar.queue");
+//        jmsDestination.setQueue(true);
+//        jmsDestination.setAmqpExchangeName("bar");
+//        jmsDestination.setAmqpRoutingKey("bar.queue");
+//        jmsDestination.setAmqpQueueName("bar.queue");
+        return new RMQDestination("bar.queue", "", "bar.queue", "bar.queue");
+    }
+
     @Bean
-    public JmsEndpoint inOutQueue(ConnectionFactory connectionFactory) {
-
-        RMQDestination jmsDestination = new RMQDestination();
-        jmsDestination.setAmqp(true);
-        jmsDestination.setDestinationName("foo.queue");
-        jmsDestination.setQueue(true);
-        jmsDestination.setAmqpExchangeName("foo");
-        jmsDestination.setAmqpRoutingKey("");
-        jmsDestination.setAmqpQueueName("foo.queue");
-
+    public JmsEndpoint inOutQueueEndpoint(ConnectionFactory connectionFactory, @Qualifier("fooQueueDestination") RMQDestination fooQueueDestination, @Qualifier("barQueueDestination") RMQDestination barQueueDestination) {
 
         return CitrusEndpoints
                 .jms()
 //                .asynchronous()
                 .synchronous()
                 .connectionFactory(connectionFactory)
-                .destination(jmsDestination)
+                .destination(fooQueueDestination)
+                .replyDestination("bar.queue")
+                .destinationResolver((session, destinationName, pubSubDomain) -> barQueueDestination)
+//                .replyDestination(barQueueDestination)
 //                .replyDestination(out)
                 .build();
     }

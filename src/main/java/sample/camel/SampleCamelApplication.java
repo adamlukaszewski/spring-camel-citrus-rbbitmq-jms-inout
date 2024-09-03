@@ -33,16 +33,5 @@ public class SampleCamelApplication {
         SpringApplication.run(SampleCamelApplication.class, args);
     }
 
-//    /* You can also configure the RabbitMQ ConnectionFactory using Java code style */
-//    @Bean
-//    @Primary
-//    public ConnectionFactory rabbitConnectionFactory() {
-//        ConnectionFactory cf = new ConnectionFactory();
-//        cf.setHost("localhost");
-//        cf.setPort(5672);
-//        cf.setUsername("camelteaaast");
-//        cf.setPassword("cameltest");
-//        return cf;
-//    }
 }
 //CHECKSTYLE:ON

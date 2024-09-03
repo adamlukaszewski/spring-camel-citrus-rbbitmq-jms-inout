@@ -11,6 +11,7 @@ import org.citrusframework.jms.endpoint.JmsEndpoint;
 import org.citrusframework.junit.jupiter.spring.CitrusSpringSupport;
 import org.citrusframework.message.MessageType;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -21,7 +22,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class SampleCamelRouterTest {
 
     @CitrusEndpoint()
-    private JmsEndpoint inOutQueue;
+    private JmsEndpoint inOutQueueEndpoint;
 
     @Test
     @CitrusTest
@@ -32,16 +33,17 @@ public class SampleCamelRouterTest {
 
         // Use the endpoint configured without a specific destination, set headers in the send action
         test.$(SendMessageAction.Builder.send()
-                .endpoint(this.inOutQueue)
+                .endpoint(this.inOutQueueEndpoint)
                 .message()
                 .type(MessageType.PLAINTEXT)
                 .body("A foo description")
         );
 
         test.$(ReceiveMessageAction.Builder.receive()
-                .endpoint(this.inOutQueue)
+                .endpoint(this.inOutQueueEndpoint)
                 .message()
                 .type(MessageType.JSON)
-                .body("\"Message received\""));
+                .body("{\"response\": \"Processed message with ID null and body: A foo description\"}")
+        );
     }
 }
