@@ -11,14 +11,13 @@ import org.citrusframework.jms.endpoint.JmsEndpoint;
 import org.citrusframework.junit.jupiter.spring.CitrusSpringSupport;
 import org.citrusframework.message.MessageType;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author Christoph Deppisch
  */
 @CitrusSpringSupport
-@ContextConfiguration(classes = {CitrusSpringConfig.class, SampleCamelRouteEndpointConfig.class})
+@ContextConfiguration(classes = {CitrusSpringConfig.class, SampleCamalaInitApplication.class, SampleCamelRouteEndpointConfig.class})
 public class SampleCamelRouterTest {
 
     @CitrusEndpoint()
@@ -26,13 +25,12 @@ public class SampleCamelRouterTest {
 
     @Test
     @CitrusTest
-    void springBeanTest(@CitrusResource TestCaseRunner test) {
-        test.variable("todoName", "citrus:concat('todo_', citrus:randomNumber(4))");
-        test.variable("todoDescription", "Description: ${todoName}");
-
+    void springBeanTest(@CitrusResource TestCaseRunner a) {
+        a.variable("todoName", "citrus:concat('todo_', citrus:randomNumber(4))");
+        a.variable("todoDescription", "Description: ${todoName}");
 
         // Use the endpoint configured without a specific destination, set headers in the send action
-        test.$(SendMessageAction.Builder.send()
+        a.$(SendMessageAction.Builder.send()
                 .endpoint(this.inOutQueueEndpoint)
                 .message()
                 .type(MessageType.PLAINTEXT)
@@ -40,7 +38,7 @@ public class SampleCamelRouterTest {
                 .body("A foo description")
         );
 
-        test.$(ReceiveMessageAction.Builder.receive()
+        a.$(ReceiveMessageAction.Builder.receive()
                 .endpoint(this.inOutQueueEndpoint)
                 .message()
                 .type(MessageType.JSON)
